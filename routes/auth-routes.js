@@ -3,8 +3,9 @@ const router = express.Router();
 const User = require("../models/User.model");
 const bcrypt = require("bcryptjs");
 
+//SIGNUP
 router.post("/signup", async (req, res) => {
-  const { username, password, role, name, lastname, gender } = req.body;
+  const { role, gender, username } = req.body;
 
   //check if username and password are filled in
   if (username === "" || password === "") {
@@ -29,17 +30,18 @@ router.post("/signup", async (req, res) => {
   const saltRounds = 10;
   const salt = bcrypt.genSaltSync(saltRounds);
   const hashedPassword = bcrypt.hashSync(password, salt);
+  //creates user
   const newUser = await User.create({
+    role,
+    gender,
     username,
     password: hashedPassword,
-    role,
-    name,
-    lastname,
-    gender,
   });
+
   res.status(200).json(newUser);
 });
 
+//LOGIN
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -63,10 +65,11 @@ router.post("/login", async (req, res) => {
     res.status(200).json(user);
   } else {
     //Passwords don't match
-    res.status(401).json({ message: "Invalid login" });
+    res.status(401).json({ message: "Invalid password" });
   }
 });
 
+//LOGOUT
 router.post("/logout", (req, res) => {
   req.session.destroy();
   res.status(200).json({ message: "user logged out" });
@@ -81,9 +84,18 @@ router.get("/loggedin", (req, res) => {
   }
 });
 
+router.get("/allUsers", async (req, res) => {
+  try {
+    const allUsers = await User.find();
+    res.status(200).json(allUsers);
+  } catch (e) {
+    res.status(500).json({ message: `error occurred ${e}` });
+  }
+});
+
 router.get("/users", async (req, res) => {
   const userId = req.session.currentUser._id; //get the id of the logged in user
-  //console.log("user id", userId);
+  console.log("user id", userId);
   const theUser = await User.findById(userId); //find the user with that id in the database
   //console.log(theUser.role);
 
@@ -97,7 +109,7 @@ router.get("/users", async (req, res) => {
     //console.log("students", allUsers);
     // if its an object(theUser) no need for curly braces
   }
-  res.status(200).json({ allUsers }); //renders
+  res.status(200).json({ allUsers }); //renders ?
 });
 
 //click like button so we can save the favorite on the user profile
@@ -114,7 +126,14 @@ router.post("/user/:userId/addfavorite", async (req, res) => {
     $push: { favorites: userDetails },
   });
 
-  res.status(200).json("/favorites");
+  res.status(200).json({ message: "favorite added succesfully" });
+});
+
+//profile
+router.get("/profile/:userId", async (req, res) => {
+  const theUser = await User.findById(req.params.userId);
+  //console.log("all coaches", allUsers)
+  res.status(200).json({ message: "profile page" });
 });
 
 module.exports = router;
