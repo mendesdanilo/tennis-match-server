@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 
 //SIGNUP
 router.post("/signup", async (req, res) => {
-  const { role, gender, username } = req.body;
+  const { password, role, gender, username } = req.body;
 
   //check if username and password are filled in
   if (username === "" || password === "") {
@@ -102,11 +102,11 @@ router.get("/users", async (req, res) => {
   let allUsers;
 
   if (theUser.role === "coach") {
-    allUsers = await User.find({ role: "student" }); //shows users that are students
+    allUsers = await User.find({ role: "athlete" }); //shows users that are students
     //console.log("all coaches", allUsers)
   } else {
     allUsers = await User.find({ role: "coach" }); //shows users that are coaches
-    //console.log("students", allUsers);
+    //console.log("athletes", allUsers);
     // if its an object(theUser) no need for curly braces
   }
   res.status(200).json({ allUsers }); //renders ?
@@ -135,5 +135,15 @@ router.get("/profile/:userId", async (req, res) => {
   //console.log("all coaches", allUsers)
   res.status(200).json({ message: "profile page" });
 });
+
+//get user by id
+router.get("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    res.status(200).json(user);
+  } catch (e) {
+    res.status(500).json({ message: `error occurred ${e}` });
+  }
+}); 
 
 module.exports = router;

@@ -18,7 +18,7 @@ const userSchema = new Schema(
     division: String,
     country: String,
     age: Number,
-    role: String, //Student or Coach
+    role: String, //Athlete or Coach
     favorites: [
       {
         type: Schema.Types.ObjectId,
