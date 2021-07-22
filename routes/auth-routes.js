@@ -38,7 +38,7 @@ router.post("/signup", async (req, res) => {
     password: hashedPassword,
   });
 
-  res.status(200).json(newUser);
+  res.status(200).json(newUser); //envia resposta do servidor para o client
 });
 
 //LOGIN
@@ -74,7 +74,7 @@ router.post("/logout", (req, res) => {
   req.session.destroy();
   res.status(200).json({ message: "user logged out" });
 });
-
+//checks if the session is still on course
 router.get("/loggedin", (req, res) => {
   if (req.session.currentUser) {
     res.status(200).json(req.session.currentUser);
@@ -84,6 +84,7 @@ router.get("/loggedin", (req, res) => {
   }
 });
 
+/*
 router.get("/allUsers", async (req, res) => {
   try {
     const allUsers = await User.find();
@@ -93,50 +94,60 @@ router.get("/allUsers", async (req, res) => {
   }
 });
 
+*/
+
+//finds different users
 router.get("/users", async (req, res) => {
-  const userId = req.session.currentUser._id; //get the id of the logged in user
+  //gets the id of the logged in user
+  const userId = req.session.currentUser._id;
   console.log("user id", userId);
-  const theUser = await User.findById(userId); //find the user with that id in the database
-  //console.log(theUser.role);
+  //find the user with that id in the database
+  const theUser = await User.findById(userId);
 
   let allUsers;
 
-  if (theUser.role === "coach") {
-    allUsers = await User.find({ role: "athlete" }); //shows users that are students
+  if (theUser.role === "coach" && theUser.gender === "male") {
+    allUsers = await User.find({ role: "athlete", gender: "male" }); //shows users that are students
     //console.log("all coaches", allUsers)
-  } else {
-    allUsers = await User.find({ role: "coach" }); //shows users that are coaches
+  }
+  if (theUser.role === "coach" && theUser.gender === "female") {
+    allUsers = await User.find({ role: "athlete", gender: "female" }); //shows users that are coaches
     //console.log("athletes", allUsers);
     // if its an object(theUser) no need for curly braces
   }
-  res.status(200).json({ allUsers }); //renders ?
+  //renders all users with the conditions above
+  res.status(200).json({ allUsers });
 });
 
 //click like button so we can save the favorite on the user profile
 router.post("/user/:userId/addfavorite", async (req, res) => {
-  //require login ?
   // console.log("favorites", req.session.currentUser.favorites)
-
   //1. Get user by id -> req.params.id
   const userDetails = await User.findById(req.params.userId);
-  //2. Obter current logged user
-
-  // if
+  // ?
   await User.findByIdAndUpdate(req.session.currentUser._id, {
     $push: { favorites: userDetails },
   });
-
+  //resposta do servidor para o cliente
   res.status(200).json({ message: "favorite added succesfully" });
 });
 
-//profile
-router.get("/profile/:userId", async (req, res) => {
-  const theUser = await User.findById(req.params.userId);
-  //console.log("all coaches", allUsers)
-  res.status(200).json({ message: "profile page" });
-});
+// get list of favorites
+router.get("/favorites"),
+  async (req, res) => {
+    try {
+      const allFavorites = await User.findById(
+        req.session.currentUser._id
+      ).populate("favorites");
+      res.status(200).json(allFavorites);
+      console.log("got favorites");
+    } catch (e) {
+      res.status(500).json({ message: `error occurred ${e}` });
+    }
+  };
+//User.findById(req.session.currentUser._id).populate('favorites')
 
-//get user by id
+//get user by id when click on user
 router.get("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -144,6 +155,6 @@ router.get("/users/:id", async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: `error occurred ${e}` });
   }
-}); 
+});
 
 module.exports = router;
