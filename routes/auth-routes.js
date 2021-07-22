@@ -133,18 +133,20 @@ router.post("/user/:userId/addfavorite", async (req, res) => {
 });
 
 // get list of favorites
-router.get("/favorites"),
-  async (req, res) => {
+router.get("/favorites", async (req, res) => {
     try {
-      const allFavorites = await User.findById(
+      const user = await User.findById(
         req.session.currentUser._id
       ).populate("favorites");
-      res.status(200).json(allFavorites);
+      res.status(200).json(user.favorites);
       console.log("got favorites");
+      console.log(user.favorites);
     } catch (e) {
       res.status(500).json({ message: `error occurred ${e}` });
     }
-  };
+});
+
+ 
 //User.findById(req.session.currentUser._id).populate('favorites')
 
 //get user by id when click on user
