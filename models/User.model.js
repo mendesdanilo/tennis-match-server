@@ -12,6 +12,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    imageUrl: String,
     name: String,
     lastname: String,
     gender: String, //male or female

@@ -74,6 +74,7 @@ router.post("/logout", (req, res) => {
   req.session.destroy();
   res.status(200).json({ message: "user logged out" });
 });
+
 //checks if the session is still on course
 router.get("/loggedin", (req, res) => {
   if (req.session.currentUser) {
@@ -83,18 +84,6 @@ router.get("/loggedin", (req, res) => {
     res.status(401).json({ message: "user logged out" });
   }
 });
-
-/*
-router.get("/allUsers", async (req, res) => {
-  try {
-    const allUsers = await User.find();
-    res.status(200).json(allUsers);
-  } catch (e) {
-    res.status(500).json({ message: `error occurred ${e}` });
-  }
-});
-
-*/
 
 //finds different users
 router.get("/users", async (req, res) => {
@@ -134,26 +123,32 @@ router.post("/user/:userId/addfavorite", async (req, res) => {
 
 // get list of favorites
 router.get("/favorites", async (req, res) => {
-    try {
-      const user = await User.findById(
-        req.session.currentUser._id
-      ).populate("favorites");
-      res.status(200).json(user.favorites);
-      console.log("got favorites");
-      console.log(user.favorites);
-    } catch (e) {
-      res.status(500).json({ message: `error occurred ${e}` });
-    }
+  try {
+    const user = await User.findById(req.session.currentUser._id).populate(
+      "favorites"
+    );
+    res.status(200).json(user.favorites);
+    console.log("got favorites");
+    console.log(user.favorites);
+  } catch (e) {
+    res.status(500).json({ message: `error occurred ${e}` });
+  }
 });
-
- 
-//User.findById(req.session.currentUser._id).populate('favorites')
 
 //get user by id when click on user
 router.get("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     res.status(200).json(user);
+  } catch (e) {
+    res.status(500).json({ message: `error occurred ${e}` });
+  }
+});
+
+//click on profile (on navbar) and renders the user info
+router.get("/currentuser", async (req, res) => {
+  try {
+    res.status(200).json(req.session.currentUser);
   } catch (e) {
     res.status(500).json({ message: `error occurred ${e}` });
   }
