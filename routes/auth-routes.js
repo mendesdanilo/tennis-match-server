@@ -104,8 +104,27 @@ router.get("/users", async (req, res) => {
     //console.log("athletes", allUsers);
     // if its an object(theUser) no need for curly braces
   }
+
+  if (theUser.role === "athlete" && theUser.gender === "male") {
+    allUsers = await User.find({ role: "coach", gender: "male" }); //shows users that are students
+    //console.log("all coaches", allUsers)
+  }
+
+  if (theUser.role === "athlete" && theUser.gender === "female") {
+    allUsers = await User.find({ role: "athlete", gender: "female" }); //shows users that are students
+    //console.log("all coaches", allUsers)
+  }
+
+  const favorites = theUser.favorites;
+  console.log(favorites); //Array of favorites
+  console.log(allUsers);
+  let notFavoriteUsers = allUsers.filter(
+    (user) => !favorites.includes(user._id.toString())
+  );
+
+  console.log(notFavoriteUsers);
   //renders all users with the conditions above
-  res.status(200).json({ allUsers });
+  res.status(200).json(notFavoriteUsers);
 });
 
 //click like button so we can save the favorite on the user profile
@@ -148,7 +167,8 @@ router.get("/users/:id", async (req, res) => {
 //click on profile (on navbar) and renders the user info
 router.get("/currentuser", async (req, res) => {
   try {
-    res.status(200).json(req.session.currentUser);
+    const currentUser = await User.findById(req.session.currentUser._id);
+    res.status(200).json(currentUser);
   } catch (e) {
     res.status(500).json({ message: `error occurred ${e}` });
   }
