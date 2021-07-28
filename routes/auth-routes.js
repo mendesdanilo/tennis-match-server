@@ -99,6 +99,7 @@ router.get("/users", async (req, res) => {
     allUsers = await User.find({ role: "athlete", gender: "male" }); //shows users that are students
     //console.log("all coaches", allUsers)
   }
+  
   if (theUser.role === "coach" && theUser.gender === "female") {
     allUsers = await User.find({ role: "athlete", gender: "female" }); //shows users that are coaches
     //console.log("athletes", allUsers);
@@ -111,7 +112,7 @@ router.get("/users", async (req, res) => {
   }
 
   if (theUser.role === "athlete" && theUser.gender === "female") {
-    allUsers = await User.find({ role: "athlete", gender: "female" }); //shows users that are students
+    allUsers = await User.find({ role: "coach", gender: "female" }); //shows users that are students
     //console.log("all coaches", allUsers)
   }
 
