@@ -99,7 +99,7 @@ router.get("/users", async (req, res) => {
     allUsers = await User.find({ role: "athlete", gender: "male" }); //shows users that are students
     //console.log("all coaches", allUsers)
   }
-  
+
   if (theUser.role === "coach" && theUser.gender === "female") {
     allUsers = await User.find({ role: "athlete", gender: "female" }); //shows users that are coaches
     //console.log("athletes", allUsers);
@@ -150,6 +150,44 @@ router.get("/favorites", async (req, res) => {
     res.status(200).json(user.favorites);
     console.log("got favorites");
     console.log(user.favorites);
+  } catch (e) {
+    res.status(500).json({ message: `error occurred ${e}` });
+  }
+});
+
+//test route to check the matches
+router.get("/matches", async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.session.currentUser._id);
+    const myFavorites = currentUser.favorites;
+
+    const arrayFavoritePromises = [];
+    let usersThatAlsoLikedMe = [];
+
+    //Get favorites from my favorites
+    myFavorites.forEach((favorite) => {
+      arrayFavoritePromises.push(User.findById(favorite));
+    });
+    const allPromisesResult = await Promise.all(arrayFavoritePromises);
+    allPromisesResult.forEach((result) => {
+      const foundMySelfAsTheirFavorite = result.favorites.some((favorite) => {
+        return favorite.toString() == req.session.currentUser._id;
+      });
+
+      //if the found favorite also liked me
+      if (foundMySelfAsTheirFavorite) {
+        usersThatAlsoLikedMe.push(result._id);
+      }
+    });
+
+    const foundUsersPromises = [];
+    usersThatAlsoLikedMe.forEach((userId) => {
+      foundUsersPromises.push(User.findById(userId));
+    });
+
+    const foundUsers = await Promise.all(foundUsersPromises);
+
+    res.status(200).json(foundUsers);
   } catch (e) {
     res.status(500).json({ message: `error occurred ${e}` });
   }
