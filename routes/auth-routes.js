@@ -133,12 +133,35 @@ router.post("/user/:userId/addfavorite", async (req, res) => {
   // console.log("favorites", req.session.currentUser.favorites)
   //1. Get user by id -> req.params.id
   const userDetails = await User.findById(req.params.userId);
+
+  const initialNumberOfMatches = await findMatches(
+    userDetails.favorites,
+    req.session.currentUser._id
+  );
   // ?
-  await User.findByIdAndUpdate(req.session.currentUser._id, {
-    $push: { favorites: userDetails },
-  });
-  //resposta do servidor para o cliente
-  res.status(200).json({ message: "favorite added succesfully" });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.session.currentUser._id,
+    {
+      $push: { favorites: userDetails },
+    },
+    { new: true }
+  );
+
+  const newNumberOfMatches = await findMatches(
+    updatedUser.favorites,
+    req.session.currentUser._id
+  );
+  console.log("initialNumberOfMatches", initialNumberOfMatches.length);
+  console.log("newNumberOfMatches", newNumberOfMatches.length);
+  if (newNumberOfMatches.length > initialNumberOfMatches.length) {
+    res
+      .status(200)
+      .json({ message: "favorite added succesfully", newMatch: true });
+    return;
+  } else {
+    //resposta do servidor para o cliente
+    res.status(200).json({ message: "favorite added succesfully" });
+  }
 });
 
 // get list of favorites
@@ -155,30 +178,38 @@ router.get("/favorites", async (req, res) => {
   }
 });
 
+async function findMatches(myFavorites, currentUserId) {
+  const arrayFavoritePromises = [];
+  let usersThatAlsoLikedMe = [];
+
+  //Get favorites from my favorites
+  myFavorites.forEach((favorite) => {
+    arrayFavoritePromises.push(User.findById(favorite));
+  });
+  const allPromisesResult = await Promise.all(arrayFavoritePromises);
+  allPromisesResult.forEach((result) => {
+    const foundMySelfAsTheirFavorite = result.favorites.some((favorite) => {
+      return favorite.toString() == currentUserId;
+    });
+
+    //if the found favorite also liked me
+    if (foundMySelfAsTheirFavorite) {
+      usersThatAlsoLikedMe.push(result._id);
+    }
+  });
+  return usersThatAlsoLikedMe;
+}
+
 //test route to check the matches
 router.get("/matches", async (req, res) => {
   try {
     const currentUser = await User.findById(req.session.currentUser._id);
     const myFavorites = currentUser.favorites;
 
-    const arrayFavoritePromises = [];
-    let usersThatAlsoLikedMe = [];
-
-    //Get favorites from my favorites
-    myFavorites.forEach((favorite) => {
-      arrayFavoritePromises.push(User.findById(favorite));
-    });
-    const allPromisesResult = await Promise.all(arrayFavoritePromises);
-    allPromisesResult.forEach((result) => {
-      const foundMySelfAsTheirFavorite = result.favorites.some((favorite) => {
-        return favorite.toString() == req.session.currentUser._id;
-      });
-
-      //if the found favorite also liked me
-      if (foundMySelfAsTheirFavorite) {
-        usersThatAlsoLikedMe.push(result._id);
-      }
-    });
+    const usersThatAlsoLikedMe = await findMatches(
+      myFavorites,
+      req.session.currentUser._id
+    );
 
     const foundUsersPromises = [];
     usersThatAlsoLikedMe.forEach((userId) => {

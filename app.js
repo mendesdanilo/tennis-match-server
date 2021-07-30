@@ -27,9 +27,11 @@ app.use(
     saveUninitialized: true,
     secret: process.env.SESSION_SECRET,
     cookie: {
-      sameSite: true, // sameSite: "none", //frontend backend both run on localhost
-      httpOnly: true, //httpOnly: false, //we are not using https
-      //   secure: true,
+      sameSite: "none",
+      //frontend backend both run on localhost
+      httpOnly: false, //httpOnly: false, //we are not using https
+      secure: true,
+      //secure: true,
       // maxAge: 60000, //session time
     },
     rolling: true,
