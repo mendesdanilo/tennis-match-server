@@ -1,4 +1,8 @@
+#Tennis-Match-Server
+
 Welcome (:
+
+##Introduction
 
 Tennis-match-client is the backend part of my final project at Ironhack Lisbon. 
 
@@ -9,6 +13,8 @@ Since time was short I focused on the main MVP functionalities such as the login
 I plan on continuing working on this project in order to enhance the user experience and the user interface, as well as implement new functionalities. 
 
 Of course, the project would not have existed without the help of professor Miguel and assistant professor Stefano. 
+
+##Tech
 
 HTML, CSS, JavaScript, React.js, Node.js, Express.js and MongoDB (Mongoose) are used in the project.
 
